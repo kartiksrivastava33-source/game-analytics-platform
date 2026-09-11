@@ -1,0 +1,8 @@
+game_genre,players,avg_sessions_per_week,avg_weekly_playtime,avg_session_duration,purchase_rate_pct,total_revenue
+Action,2332,11.03,14.53,70.22,95.33,444190.32
+RPG,2019,11.19,14.84,71.58,96.19,411051.55
+Adventure,1389,10.93,14.2,69.27,95.25,265311.66
+Strategy,1330,11.02,14.42,69.97,95.56,264977.05
+Sports,1190,10.89,14.15,69.5,95.29,217000.1
+Simulation,932,11.1,14.64,70.88,94.85,191671.6
+Puzzle,808,10.94,14.33,69.9,96.29,152590.5
