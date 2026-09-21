@@ -26,3 +26,6 @@ jobs:
         run: python -m pytest tests/test_api.py -v
         env:
           PYTHONPATH: .
+
+      - name: Build Docker image
+        run: docker build -t game-analytics-api .
