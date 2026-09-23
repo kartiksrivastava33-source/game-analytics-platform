@@ -1,49 +1,56 @@
 from pathlib import Path
 
 import pandas as pd
-import numpy as np
-from scipy.stats import chi2_contingency
+from scipy.stats import ttest_ind
+
 
 ROOT = Path(__file__).resolve().parents[1]
 
 INPUT_FILE = ROOT / "data" / "processed" / "players_clean.csv"
+OUTPUT_FILE = ROOT / "data" / "processed" / "ab_test_results.csv"
+
 
 df = pd.read_csv(INPUT_FILE)
 
-np.random.seed(42)
+df = df.sample(frac=1, random_state=42).reset_index(drop=True)
 
-df["experiment_group"] = np.random.choice(
-    ["Control", "Treatment"],
-    size=len(df)
+df["group"] = ["A"] * (len(df) // 2) + ["B"] * (len(df) - len(df) // 2)
+
+control = df[df["group"] == "A"]["total_revenue_usd"]
+treatment = df[df["group"] == "B"]["total_revenue_usd"]
+
+control_mean = control.mean()
+treatment_mean = treatment.mean()
+
+difference = treatment_mean - control_mean
+
+statistic, p_value = ttest_ind(
+    control,
+    treatment,
+    equal_var=False
 )
 
-control = df[df["experiment_group"] == "Control"]
-treatment = df[df["experiment_group"] == "Treatment"]
-
-control_rate = control["purchase_flag"].mean()
-treatment_rate = treatment["purchase_flag"].mean()
-
-table = pd.crosstab(
-    df["experiment_group"],
-    df["purchase_flag"]
+result = pd.DataFrame(
+    [{
+        "control_mean_revenue": control_mean,
+        "treatment_mean_revenue": treatment_mean,
+        "difference": difference,
+        "p_value": p_value
+    }]
 )
 
-chi2, p_value, dof, expected = chi2_contingency(table)
+result.to_csv(OUTPUT_FILE, index=False)
 
-lift = (
-    (treatment_rate - control_rate)
-    / control_rate
-) * 100
-
-print("A/B TESTING")
+print("A/B TEST RESULTS")
 print("=" * 50)
-
-print(f"Control conversion rate   : {control_rate:.2%}")
-print(f"Treatment conversion rate : {treatment_rate:.2%}")
-print(f"Relative lift             : {lift:.2f}%")
-print(f"p-value                   : {p_value:.4f}")
+print(f"Control mean revenue:   {control_mean:.2f}")
+print(f"Treatment mean revenue: {treatment_mean:.2f}")
+print(f"Difference:             {difference:.2f}")
+print(f"P-value:                {p_value:.4f}")
 
 if p_value < 0.05:
-    print("Result: Statistically significant difference")
+    print("Result: statistically significant")
 else:
-    print("Result: No statistically significant difference")
+    print("Result: not statistically significant")
+
+print(f"\nSaved: {OUTPUT_FILE}")
